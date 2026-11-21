@@ -109,8 +109,10 @@ enum TokenFreshness {
     incomingJWT: DecodedJWT,
     now: Date
   ) -> TokenResource? {
-    let existingIsExpired = existingJWT.expiresAt.map { $0 <= now }
-    let incomingIsExpired = incomingJWT.expiresAt.map { $0 <= now }
+    // Raw seconds, not `Date`'s `<=`: the iOS 27.2 beta lacks that symbol and calling it crashes.
+    let nowSeconds = now.timeIntervalSinceReferenceDate
+    let existingIsExpired = existingJWT.expiresAt.map { $0.timeIntervalSinceReferenceDate <= nowSeconds }
+    let incomingIsExpired = incomingJWT.expiresAt.map { $0.timeIntervalSinceReferenceDate <= nowSeconds }
 
     switch (existingIsExpired, incomingIsExpired) {
     case (.some(true), .some(false)):
